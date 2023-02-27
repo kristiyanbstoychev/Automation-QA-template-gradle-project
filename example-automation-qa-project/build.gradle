@@ -3,7 +3,7 @@ plugins {
     id 'com.adarshr.test-logger' version '3.2.0'
 }
 
-group 'com.brainstarstech.bcs.qa'
+group 'com.example.automation-qa'
 version '1.0-SNAPSHOT'
 
 repositories {
