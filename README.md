@@ -1,6 +1,30 @@
 # Automation-QA-template-gradle-project
 A template used for creating Automation QA projects, using gradle
-  
+
+# CI/CD Setup
+To run any given Test Class from the command line
+
+```
+./gradlew -i clean test --tests *TestSuiteRunnerCFUI - to run jUnit tests with Gradle
+```
+
+Jenkins setup
+In the Build steps section, select Execute Shell and type:
+```
+#!/bin/bash
+source ~/.bashrc
+source ~/.profile
+cd path/to/the/local/repository
+export BROWSER_FOR_TESTING="browser"
+export DEVICE_FOR_TESTING="device"
+./gradlew -i clean test --tests *TestSuiteRunnerCFUI
+```
+
+In the Build Triggers section select Build periodically, to run the test on a schedule
+Example: to run the Tests at 17:50 
+```
+50 17 * * *
+```
   # Architecture
   ![image](https://user-images.githubusercontent.com/77746043/221887135-14949781-fa3b-4729-b6d3-267342a2e822.png)
   
@@ -21,6 +45,7 @@ A template used for creating Automation QA projects, using gradle
         switch (browser) {
             case "chrome": {
                 webDriverManager = WebDriverManager.chromedriver();
+                webDriverManager.setup();
                 ChromeOptions chromeOptions = new ChromeOptions();
                 chromeOptions.addArguments("--incognito");
                 chromeOptions.addArguments("--ignore-certificate-errors");
@@ -33,12 +58,14 @@ A template used for creating Automation QA projects, using gradle
                 chromeOptions.addArguments("--disable-gpu");
                 chromeOptions.addArguments("-disable-features=NetworkService");
                 chromeOptions.addArguments("--no-sandbox");
+                chromeOptions.addArguments("--remote-allow-origins=*");
                 chromeOptions.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
                 driver = new ChromeDriver(chromeOptions);
                 break;
             }
             case "firefox": {
                 webDriverManager = WebDriverManager.firefoxdriver();
+                webDriverManager.setup();
                 FirefoxOptions firefoxOptions = new FirefoxOptions();
                 firefoxOptions.addArguments("--incognito");
                 if (!isDebugModeEnabled) {
@@ -51,11 +78,13 @@ A template used for creating Automation QA projects, using gradle
             }
             case "safari": {
                 webDriverManager = WebDriverManager.safaridriver();
+                webDriverManager.setup();
                 SafariOptions safariOptions = new SafariOptions();
                 break;
             }
             case "mobile": {
                 webDriverManager = WebDriverManager.chromedriver();
+                webDriverManager.setup();
                 Map<String, String> mobileEmulation = new HashMap<>();
                 mobileEmulation.put("deviceName", getDeviceForTestingEnvVariable(deviceForTestingEnvVariableName));
                 ChromeOptions mobileOptions = new ChromeOptions();
@@ -70,12 +99,14 @@ A template used for creating Automation QA projects, using gradle
                 mobileOptions.addArguments("--disable-gpu");
                 mobileOptions.addArguments("-disable-features=NetworkService");
                 mobileOptions.addArguments("--no-sandbox");
+                mobileOptions.addArguments("--remote-allow-origins=*");
                 mobileOptions.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
                 driver = new ChromeDriver(mobileOptions);
                 break;
             }
         }
     }
+
     
   The browser is opened in headless mode (no UI) in incognito mode, that way the testing environment will remain the same each time a test is run.
   Next the setEmailAndNotificationsContent() method is called. This function is responsible for managing the content of the notifications throughout the     website
@@ -95,6 +126,11 @@ A template used for creating Automation QA projects, using gradle
         driver.manage().deleteAllCookies();
         driver.navigate().to(cfuiURL);
         getWait().until(ExpectedConditions.presenceOfElementLocated((By.xpath("xpath of an element that should be displayed on the home page"))));
+        //Sets the content of email and onsite notifications
+        GlobalVariables.setEmailAndNotificationsContent();
+        //Reads a couple of csv files, storing emails and nicknames of users, needed for testing
+        CSVHandler.readCSVFileAndSaveContentAsListOfStrings("testData/emails.csv", csvEmailsList);
+        CSVHandler.readCSVFileAndSaveContentAsListOfStrings("testData/nicknames.csv", csvNicknamesList);
     }
   
   After the execution of all tests is finnished the browser is closed and the driver executable is killed. Also if there are any failed tests they are printed
@@ -190,10 +226,28 @@ A template used for creating Automation QA projects, using gradle
 
     //boolean which checks whether tests are executed in debug mode or not
     public static final boolean isDebugModeEnabled = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
+    
+    //lists with emails and nicknames that could be used for testing, stored in csv files
+    public static List<String> csvEmailsList = new ArrayList<>();
+    public static List<String> csvNicknamesList = new ArrayList<>();
 
+    //Email Notifications
+    public static String emailSubject = "emailSubject";
+    public static String emailBody = "emailBody";
+    public static String emailButton = "emailButton";
+
+    public static JSONObject registrationEmail = new JSONObject();
+
+    //Method storing the content of the email and onsite notifications
+    public static void setEmailAndNotificationsContent() {
+        //Email Notifications
+        registrationEmail.put(emailSubject, "Example email subject");
+        registrationEmail.put(emailBody, "Example email body");
+        registrationEmail.put(emailButton, "Example email button");
+    }
+    
     public static String exampleGlobalVariable = "";
  
-     
    
  ## Example Locators and page methods class
  
@@ -269,4 +323,54 @@ A template used for creating Automation QA projects, using gradle
         }
     }
     }
+    
+ ### Notifications Handler
+public class NotificationsHandler {
+
+    //Method used for verifying the content of email notifications,
+    //if an email is not received for up to two minutes an error message is displayed
+    public static void openMailinatorMailInbox(String mailinatorUser, String receivedEmail, String emailBodyText, String emailButton) {
+        driver.get("https://mailinator.com/v4/public/inboxes.jsp?to=" + mailinatorUser);
+
+        for (int i = 1; i <= 10; i++) {
+            try {
+                if (isMobile) {
+                    getWait().until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//div[contains(text(), 'just now')]"))));
+                    getWait().until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//a[contains(text(), '" + receivedEmail + "')]"))));
+                } else {
+                    getWait().until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//td[contains(text(), 'just now')]"))));
+                    getWait().until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//td[contains(text(), '" + receivedEmail + "')]"))));
+                }
+                System.out.println("************* Email received: " + receivedEmail + " *************");
+                break;
+            } catch (Exception e) {
+                System.out.println("Attempt to find mail #" + i);
+                waitForSeconds(12);
+            }
+            if (i == 10) {
+                System.out.println("************* Email was not received: " + receivedEmail + " *************");
+            }
+        }
+        if (isMobile) {
+            driver.findElement(By.xpath("//a[contains(text(), '" + receivedEmail + "')]")).click();
+        } else {
+            driver.findElement(By.xpath("//td[contains(text(), '" + receivedEmail + "')]")).click();
+        }
+
+        driver.switchTo().frame(driver.findElement(By.id("html_msg_body")));
+        TimeUtils.waitForSeconds(2);
+        getWait().until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//td[contains(text(), '" + emailBodyText + "')]"))));
+        System.out.println("************* Email content verified: " + emailBodyText + " *************");
+
+        try {
+            driver.findElement(By.xpath("//a[contains(text(), '" + emailButton + "')]")).click();
+            System.out.println("************* Email button clicked *************");
+            ArrayList<String> arrayList = new ArrayList<>(driver.getWindowHandles());
+            driver.switchTo().window(arrayList.get(1));
+        } catch (Exception e) {
+            System.out.println("No button present in email body");
+        }
+    }
+}
+    
     
