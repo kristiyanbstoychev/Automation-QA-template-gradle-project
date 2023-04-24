@@ -7,6 +7,4 @@ import org.junit.platform.suite.api.Suite;
         //        ForgottenPasswordTestsCFUI.class,
 })
 public class TestSuiteRunnerBO {
-    //        RegistrationTestsCFUI.class,
-    //        ForgottenPasswordTestsCFUI.class,
 }

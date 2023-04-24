@@ -27,5 +27,4 @@ public class ExampleBaseAPITestsCFUI {
             return cookies != null ? cookies : new ArrayList<>();
         }
     };
-
 }
