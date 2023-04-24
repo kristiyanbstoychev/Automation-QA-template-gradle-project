@@ -17,6 +17,8 @@ import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.safari.SafariOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import tests.GlobalVariables;
+import utils.CSVHandler;
 import utils.TestResultsWatcher;
 import utils.TimeUtils;
 
@@ -26,6 +28,8 @@ import java.util.Map;
 
 import static tests.GlobalVariables.browserForTestingEnvVariableName;
 import static tests.GlobalVariables.cfuiURL;
+import static tests.GlobalVariables.csvEmailsList;
+import static tests.GlobalVariables.csvNicknamesList;
 import static tests.GlobalVariables.deviceForTestingEnvVariableName;
 import static tests.GlobalVariables.driver;
 import static tests.GlobalVariables.getBrowserForTestingEnvVariable;
@@ -52,14 +56,16 @@ public class ExampleBaseTestCFUI {
         driver.manage().window().maximize();
         driver.manage().deleteAllCookies();
         driver.navigate().to(cfuiURL);
-        getWait().until(ExpectedConditions.presenceOfElementLocated((By.xpath("//button[@data-testid='headerLanguage']"))));
 
-        TimeUtils.waitForSeconds(1);
-        try {
-            driver.findElement(By.xpath("//button[contains(text(), 'Got it')]")).click();
-        } catch (Exception e) {
-            System.out.println("Cookie consent not displayed");
-        }
+        TimeUtils.waitForSeconds(3);
+
+        getWait().until(ExpectedConditions.presenceOfElementLocated((By.xpath("xpath of an element that should be displayed on the home page"))));
+
+        //Sets the content of email and onsite notifications
+        GlobalVariables.setEmailAndNotificationsContent();
+        //Reads a couple of csv files, storing emails and nicknames of users, needed for testing
+        CSVHandler.readCSVFileAndSaveContentAsListOfStrings("testData/emails.csv", csvEmailsList);
+        CSVHandler.readCSVFileAndSaveContentAsListOfStrings("testData/nicknames.csv", csvNicknamesList);
     }
 
     //Picks which browser and browser options should be used for testing
@@ -67,6 +73,7 @@ public class ExampleBaseTestCFUI {
         switch (browser) {
             case "chrome": {
                 webDriverManager = WebDriverManager.chromedriver();
+                webDriverManager.setup();
                 ChromeOptions chromeOptions = new ChromeOptions();
                 chromeOptions.addArguments("--incognito");
                 chromeOptions.addArguments("--ignore-certificate-errors");
@@ -79,12 +86,14 @@ public class ExampleBaseTestCFUI {
                 chromeOptions.addArguments("--disable-gpu");
                 chromeOptions.addArguments("-disable-features=NetworkService");
                 chromeOptions.addArguments("--no-sandbox");
+                chromeOptions.addArguments("--remote-allow-origins=*");
                 chromeOptions.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
                 driver = new ChromeDriver(chromeOptions);
                 break;
             }
             case "firefox": {
                 webDriverManager = WebDriverManager.firefoxdriver();
+                webDriverManager.setup();
                 FirefoxOptions firefoxOptions = new FirefoxOptions();
                 firefoxOptions.addArguments("--incognito");
                 if (!isDebugModeEnabled) {
@@ -97,11 +106,13 @@ public class ExampleBaseTestCFUI {
             }
             case "safari": {
                 webDriverManager = WebDriverManager.safaridriver();
+                webDriverManager.setup();
                 SafariOptions safariOptions = new SafariOptions();
                 break;
             }
             case "mobile": {
                 webDriverManager = WebDriverManager.chromedriver();
+                webDriverManager.setup();
                 Map<String, String> mobileEmulation = new HashMap<>();
                 mobileEmulation.put("deviceName", getDeviceForTestingEnvVariable(deviceForTestingEnvVariableName));
                 ChromeOptions mobileOptions = new ChromeOptions();
@@ -116,6 +127,7 @@ public class ExampleBaseTestCFUI {
                 mobileOptions.addArguments("--disable-gpu");
                 mobileOptions.addArguments("-disable-features=NetworkService");
                 mobileOptions.addArguments("--no-sandbox");
+                mobileOptions.addArguments("--remote-allow-origins=*");
                 mobileOptions.setCapability(CapabilityType.ACCEPT_INSECURE_CERTS, true);
                 driver = new ChromeDriver(mobileOptions);
                 break;
