@@ -5,7 +5,7 @@ A template used for creating Automation QA projects, using gradle
 To run any given Test Class from the command line
 
 ```
-./gradlew -i clean test --tests *TestSuiteRunnerCFUI - to run jUnit tests with Gradle
+./gradlew -i clean test --tests 'TestSuiteRunnerCFUI' - to run jUnit tests with Gradle
 ```
 
 Jenkins setup
@@ -15,6 +15,7 @@ In the Build steps section, select Execute Shell and type:
 source ~/.bashrc
 source ~/.profile
 cd path/to/the/local/repository
+export URL_FOR_TESTING="url for testing"
 export BROWSER_FOR_TESTING="browser"
 export DEVICE_FOR_TESTING="device"
 ./gradlew -i clean test --tests *TestSuiteRunnerCFUI
