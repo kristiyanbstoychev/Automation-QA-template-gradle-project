@@ -9,18 +9,14 @@ import org.openqa.selenium.WebDriver;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static tests.GlobalVariables.driver;
-import static tests.GlobalVariables.localTempDirectory;
+import static tests.GlobalVariables.localTempDirectoryLinux;
+import static tests.GlobalVariables.localTempDirectoryWindows;
 import static tests.GlobalVariables.operationSystem;
 
 public class TestResultsWatcher implements TestWatcher {
-
-    //a list storing the names of failed tests, used for creating a summary at the end of the test suite
-    public static List<String> failedTests = new ArrayList<>();
 
     @Override
     public void testAborted(ExtensionContext extensionContext, Throwable throwable) {
@@ -32,15 +28,20 @@ public class TestResultsWatcher implements TestWatcher {
         driver.quit();
     }
 
-    //takes a screenshot, if a test fails, only if the currently used OS is Windows and save the file in the system temp folder
+    //takes a screenshot, if a test fails and saves it in the system temp folder
     @Override
     public void testFailed(ExtensionContext extensionContext, Throwable throwable) {
+        String screenshotFileName = "";
         if (operationSystem.contains("Windows")) {
-            String screenshotFileName = localTempDirectory + extensionContext.getDisplayName() + "_" + TestDataGeneration.formatDate("hh-mm-ss_dd.MM", "bg") + ".jpeg";
-            System.out.println("Test failed! Screenshot saved to: " + screenshotFileName);
-            failedTests.add(extensionContext.getDisplayName());
-            takeSnapShot(driver, screenshotFileName);
+            screenshotFileName = localTempDirectoryWindows + extensionContext.getDisplayName() + "_" + TestDataGeneration.formatDate("hh-mm-ss_dd.MM", "bg") + ".jpeg";
         }
+        if (operationSystem.contains("Linux")) {
+            screenshotFileName = localTempDirectoryLinux + extensionContext.getDisplayName() + "_" + TestDataGeneration.formatDate("hh-mm-ss_dd.MM", "bg") + ".jpeg";
+        }
+
+        takeSnapShot(driver, screenshotFileName);
+        System.out.println("Test failed! Screenshot saved to: " + screenshotFileName);
+
         driver.quit();
     }
 

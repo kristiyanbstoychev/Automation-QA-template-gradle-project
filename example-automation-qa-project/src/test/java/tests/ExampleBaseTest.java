@@ -1,7 +1,6 @@
 package tests;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -15,16 +14,17 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.safari.SafariOptions;
+import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import tests.GlobalVariables;
-import utils.CSVHandler;
-import utils.TestResultsWatcher;
 import utils.TimeUtils;
 
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+
+import utils.TestResultsWatcher;
+import utils.CSVHandler;
 
 import static tests.GlobalVariables.browserForTestingEnvVariableName;
 import static tests.GlobalVariables.cfuiURL;
@@ -42,7 +42,8 @@ import static tests.GlobalVariables.webDriverManager;
 
 //Execute tests in alphabetical order
 @TestMethodOrder(MethodOrderer.MethodName.class)
-//Enables the TestWatcher class, which monitors the test results
+
+//Enables the TestWatcher class, which monitors the test results (currently used only for taking screenshots if a test fails)
 @ExtendWith(TestResultsWatcher.class)
 public class ExampleBaseTest {
 
@@ -58,10 +59,6 @@ public class ExampleBaseTest {
         driver.manage().window().maximize();
         driver.manage().deleteAllCookies();
         driver.navigate().to(getEnvVariable(urlForTestingEnvVariable, cfuiURL));
-
-        TimeUtils.waitForSeconds(3);
-
-        getWait().until(ExpectedConditions.presenceOfElementLocated((By.xpath("xpath of an element that should be displayed on the home page"))));
 
         //Sets the content of email and onsite notifications
         GlobalVariables.setEmailAndNotificationsContent();
