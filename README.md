@@ -1,6 +1,20 @@
 # Automation-QA-template-gradle-project
 A template used for creating Automation QA projects, using gradle
 
+# To edit the project name and packajes
+![image](https://github.com/kristiyanbstoychev/Automation-QA-template-gradle-project/assets/77746043/b46b54c7-ca76-458a-927f-20c476865c8a)
+![image](https://github.com/kristiyanbstoychev/Automation-QA-template-gradle-project/assets/77746043/00ad855c-98f2-43f0-afeb-1547174b5361)
+![image](https://github.com/kristiyanbstoychev/Automation-QA-template-gradle-project/assets/77746043/b62efe62-824b-46dc-9eac-377d42c48e04)
+![image](https://github.com/kristiyanbstoychev/Automation-QA-template-gradle-project/assets/77746043/6a029da0-c13e-41f0-ae18-5ed94dad63ab)
+
+
+# Example Automation Testing Websites For Practice purposes
+  https://demoqa.com/
+
+  https://bstackdemo.com
+  
+  https://www.demoblaze.com/
+
 # CI/CD Setup
 To run any given Test Class from the command line
 
@@ -27,8 +41,8 @@ Example: to run the Tests at 17:50
 50 17 * * *
 ```
   # Architecture
-  ![image](https://user-images.githubusercontent.com/77746043/221887135-14949781-fa3b-4729-b6d3-267342a2e822.png)
-  
+  ![image](https://github.com/kristiyanbstoychev/Automation-QA-template-gradle-project/assets/77746043/5d6bee03-b09a-4d56-8096-15f2a91dff6c)
+
   The project is based on the Page object model. Tests and locators are created in separate classes.
   The PAGES package contains the locators and methods needed for testing a certain page. Example: LoginPage
   The TESTS package contains sets of tests that verify certain functionalities. Example LoginTests
@@ -134,17 +148,7 @@ Example: to run the Tests at 17:50
         CSVHandler.readCSVFileAndSaveContentAsListOfStrings("testData/nicknames.csv", csvNicknamesList);
     }
   
-  After the execution of all tests is finnished the browser is closed and the driver executable is killed. Also if there are any failed tests they are printed
-  as a array of strings.
-  
-      @AfterAll
-    static void doAfterAllTests() {
-        //After all tests are finished, prints out all the failed tests
-        System.out.println("************* Failed tests: *************");
-        System.out.println(TestResultsWatcher.failedTests);
-    }
-  
-  The class can also contain other method, which are commonly used among the other test classes.
+  The class can also contain other methods, which are commonly used among the other test classes.
   
       //Scrolls the page to a desired element
     public static void scrollIntoView(WebElement element) {
@@ -373,5 +377,102 @@ public class NotificationsHandler {
         }
     }
 }
+
+### TestResultsWatcher
+
+    public class TestResultsWatcher implements TestWatcher {
+
+    @Override
+    public void testAborted(ExtensionContext extensionContext, Throwable throwable) {
+        driver.quit();
+    }
+
+    @Override
+    public void testDisabled(ExtensionContext extensionContext, Optional<String> optional) {
+        driver.quit();
+    }
+
+    //takes a screenshot, if a test fails and saves it in the system temp folder
+    @Override
+    public void testFailed(ExtensionContext extensionContext, Throwable throwable) {
+        String screenshotFileName = "";
+        if (operationSystem.contains("Windows")) {
+            screenshotFileName = localTempDirectoryWindows + extensionContext.getDisplayName() + "_" + TestDataGeneration.formatDate("hh-mm-ss_dd.MM", "bg") + ".jpeg";
+        }
+        if (operationSystem.contains("Linux")) {
+            screenshotFileName = localTempDirectoryLinux + extensionContext.getDisplayName() + "_" + TestDataGeneration.formatDate("hh-mm-ss_dd.MM", "bg") + ".jpeg";
+        }
+
+        takeSnapShot(driver, screenshotFileName);
+        System.out.println("Test failed! Screenshot saved to: " + screenshotFileName);
+
+        driver.quit();
+    }
+
+    @Override
+    public void testSuccessful(ExtensionContext extensionContext) {
+        driver.quit();
+    }
+
+    //method used for taking screenshots
+    public static void takeSnapShot(WebDriver webdriver, String fileWithPath) {
+        //Convert web driver object to TakeScreenshot
+        TakesScreenshot scrShot = ((TakesScreenshot) webdriver);
+
+        //Call getScreenshotAs method to create image file
+        File SrcFile = scrShot.getScreenshotAs(OutputType.FILE);
+
+        //Move image file to new destination
+        File DestFile = new File(fileWithPath);
+
+        //Copy file at destination
+        try {
+            FileUtils.copyFile(SrcFile, DestFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    }
+
     
-    
+### TimeUtils
+
+    public class TimeUtils {
+
+    public static void waitForSeconds(int timeoutInSeconds) {
+        try {
+            Thread.sleep(timeoutInSeconds * 1000L);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void clickAvailableElementFromList(List<WebElement> webElementList) {
+        int i = 0;
+        while (!webElementList.get(i).isDisplayed()) {
+            System.out.println("************* element not clickable...retrying *************");
+            i++;
+            if (i > 5) {
+                System.out.println("************* element cannot be found *************");
+                break;
+            }
+        }
+        scrollIntoView(webElementList.get(i));
+
+        webElementList.get(i).click();
+    }
+
+    public static void clickAvailableElement(WebElement webElement) {
+        int i = 0;
+        while (!webElement.isDisplayed()) {
+            System.out.println("element not clickable");
+            i++;
+            if (i >= 5) {
+                System.out.println("element cannot be found");
+                break;
+            }
+        }
+        scrollIntoView(webElement);
+        webElement.click();
+    }
+    }
