@@ -17,4 +17,32 @@ public class TimeUtils {
         }
     }
 
+    public static void clickAvailableElementFromList(List<WebElement> webElementList) {
+        int i = 0;
+        while (!webElementList.get(i).isDisplayed()) {
+            System.out.println("************* element not clickable...retrying *************");
+            i++;
+            if (i > 5) {
+                System.out.println("************* element cannot be found *************");
+                break;
+            }
+        }
+        scrollIntoView(webElementList.get(i));
+
+        webElementList.get(i).click();
+    }
+
+    public static void clickAvailableElement(WebElement webElement) {
+        int i = 0;
+        while (!webElement.isDisplayed()) {
+            System.out.println("element not clickable");
+            i++;
+            if (i >= 5) {
+                System.out.println("element cannot be found");
+                break;
+            }
+        }
+        scrollIntoView(webElement);
+        webElement.click();
+    }
 }
