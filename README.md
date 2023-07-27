@@ -10,8 +10,8 @@ A template used for creating Automation QA projects, using gradle
 # How produce a cleaner and a better looking code
 ## Automatically reformat code on save﻿:
 You can configure the IDE to reformat code in modified files automatically when your changes are saved.
-Press Ctrl + Alt + S to open the IDE settings and then select Tools | Actions on Save.
-Enable the Reformat code option.
+Press Ctrl + Alt + S to open the IDE settings and then select Tools | Actions on Save. Enable the Reformat code option.
+
 ![image](https://github.com/kristiyanbstoychev/Automation-QA-template-gradle-project/assets/77746043/8edff08f-f45b-421c-a960-1e4754c75f34)
 
 # Example Automation Testing Websites For Practice purposes
